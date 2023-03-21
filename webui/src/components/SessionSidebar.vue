@@ -4,12 +4,12 @@ import { RouterLink } from 'vue-router'
 import ChatIcon from './icons/IconChat.vue'
 
 export interface Props {
-    sessions?: { title: string, id: string }[],
+    sessions?: { title: string; id: string }[]
     active?: string
 }
 const props = withDefaults(defineProps<Props>(), {
     sessions: () => [],
-    active: ''
+    active: '',
 })
 const emit = defineEmits(['hide'])
 </script>
@@ -24,12 +24,13 @@ const emit = defineEmits(['hide'])
             <RouterLink
                 v-for="(item, index) in sessions"
                 :key="index"
-                :to="{ params: { sessionId: `${item.id}`} }"
-            > 
+                :to="{ params: { sessionId: `${item.id}` } }"
+            >
                 <div
                     :class="{
-                        'option': item.id != active,
-                        'option-active': item.id == active}"
+                        option: item.id != active,
+                        'option-active': item.id == active,
+                    }"
                 >
                     <ChatIcon class="option-image" />
                     <span class="option-title">{{ item.title }}</span>
@@ -47,10 +48,7 @@ const emit = defineEmits(['hide'])
             <div class="option">
                 <span>Dark mode</span>
             </div>
-            <div
-                class="option"
-                @click="emit('hide')"
-            > 
+            <div class="option" @click="emit('hide')">
                 <span>Hide sidebar</span>
             </div>
         </div>
@@ -59,7 +57,7 @@ const emit = defineEmits(['hide'])
 
 <style scoped>
 a {
-    text-decoration: none;   
+    text-decoration: none;
 }
 #main-wrapper {
     display: inline-block;
@@ -72,7 +70,7 @@ a {
 #bottom-wrapper {
     position: absolute;
     bottom: 0px;
-    border-top: 1px solid #4D4D4F;
+    border-top: 1px solid #4d4d4f;
     width: 100%;
 }
 
@@ -101,7 +99,8 @@ a {
     width: 20px;
     float: left;
 }
-.option, .option-active {
+.option,
+.option-active {
     height: 40px;
     margin: 5px 10px;
     padding-left: 10px;
@@ -117,7 +116,8 @@ a {
 
     overflow: hidden;
 }
-.option span, .option-active span {
+.option span,
+.option-active span {
     padding-left: 10px;
 }
 .option-active {
@@ -126,7 +126,6 @@ a {
 }
 .option:hover {
     transition: background-color 0.1s linear;
-    background-color: #2A2B31;
+    background-color: #2a2b31;
 }
-
 </style>
