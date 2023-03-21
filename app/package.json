@@ -3,17 +3,25 @@
   "version": "1.0.0",
   "main": "index.js",
   "devDependencies": {
-    "@types/express": "^4.17.17"
+    "@types/cors": "^2.8.13",
+    "@types/express": "^4.17.17",
+    "@types/randomstring": "^1.1.8",
+    "npm-run-all": "^4.1.5"
   },
   "scripts": {
     "build": "tsc --build",
-    "serve": "node ./dist/index.js"
+    "serve": "node ./dist/index.js",
+    "dev": "run-s build serve"
   },
   "author": "",
   "license": "ISC",
   "description": "",
   "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^16.0.3",
     "express": "^4.18.2",
+    "openai": "^3.2.1",
+    "randomstring": "^1.2.3",
     "typescript": "^5.0.2"
   }
 }

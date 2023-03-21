@@ -13,7 +13,9 @@
       ]
     },
     "outDir": "./dist",
-    "ignoreDeprecations": "5.0"
+    "ignoreDeprecations": "5.0",
+    "allowJs": true,
+    "checkJs": false,
   },
   "references": [
     {

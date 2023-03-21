@@ -1,52 +1,73 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { defineEmits } from 'vue'
+import { RouterLink } from 'vue-router'
 import ChatIcon from './icons/IconChat.vue'
 
 export interface Props {
-    width?: number,
-    sessions?: string[]
+    sessions?: { title: string, id: string }[],
+    active?: string
 }
 const props = withDefaults(defineProps<Props>(), {
-    width: 1024,
     sessions: () => [],
+    active: ''
 })
-
-const activeIndex = ref(-1);
-
+const emit = defineEmits(['hide'])
 </script>
 
 <template>
     <div id="main-wrapper">
-        <div id="create-session">New chat</div>
+        <div id="create-button">
+            <span>New chat</span>
+        </div>
 
         <div id="session-wrapper">
-            <div 
-                :class="{
-                    'option': index != activeIndex,
-                    'option-active': index == activeIndex
-                }"
-                v-for="(item, index) in sessions" :key="index" @click="activeIndex = index">
-                <ChatIcon class="option-image"></ChatIcon>
-                <span class="option-title">{{ item }}</span>
-            </div>
+            <RouterLink
+                v-for="(item, index) in sessions"
+                :key="index"
+                :to="{ params: { sessionId: `${item.id}`} }"
+            > 
+                <div
+                    :class="{
+                        'option': item.id != active,
+                        'option-active': item.id == active}"
+                >
+                    <ChatIcon class="option-image" />
+                    <span class="option-title">{{ item.title }}</span>
+                </div>
+            </RouterLink>
         </div>
 
         <div id="bottom-wrapper">
-            <div class="option"> Clear conversations </div>
-            <div class="option"> Upgrade to Plus </div>
-            <div class="option"> Dark mode </div>
-            <div class="option"> Log out </div>
+            <div class="option">
+                <span>Clear conversations</span>
+            </div>
+            <div class="option">
+                <span>Upgrade to Plus</span>
+            </div>
+            <div class="option">
+                <span>Dark mode</span>
+            </div>
+            <div
+                class="option"
+                @click="emit('hide')"
+            > 
+                <span>Hide sidebar</span>
+            </div>
         </div>
     </div>
 </template>
 
 <style scoped>
+a {
+    text-decoration: none;   
+}
 #main-wrapper {
-    position: fixed;
+    display: inline-block;
     background-color: #181818;
-    min-width: 200px;
-    width: v-bind(width + 'px');
+    /* min-width: 200px; */
+    width: inherit;
     height: 100vh;
+    overflow: hidden;
 }
 #bottom-wrapper {
     position: absolute;
@@ -55,7 +76,7 @@ const activeIndex = ref(-1);
     width: 100%;
 }
 
-#create-session {
+#create-button {
     height: 45px;
     margin: 10px 10px;
     border-radius: 5px;
@@ -64,10 +85,13 @@ const activeIndex = ref(-1);
     line-height: 45px;
     text-align: center;
     color: #d1e0d5;
+
     user-select: none;
     cursor: pointer;
+
+    overflow: hidden;
 }
-#create-session:hover {
+#create-button:hover {
     transition: background-color 0.1s linear;
     background-color: #202123;
 }
@@ -104,6 +128,5 @@ const activeIndex = ref(-1);
     transition: background-color 0.1s linear;
     background-color: #2A2B31;
 }
-
 
 </style>
