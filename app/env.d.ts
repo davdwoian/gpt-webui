@@ -1,7 +1,9 @@
-declare namespace NodeJS {
-    interface ProcessEnv {
-        readonly API_KEY: string
-        readonly MODEL: string
-        readonly API_CHATGPT_SESSION_ID_LENGTH: string
-    }
+/// <reference types="vite/client" />
+
+interface ImportMetaEnv {
+    readonly VITE_API_SERVER_ADDRESS: string
+}
+
+interface ImportMeta {
+    readonly env: ImportMetaEnv
 }
