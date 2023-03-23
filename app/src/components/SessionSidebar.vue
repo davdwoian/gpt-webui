@@ -9,7 +9,7 @@ export interface Props {
     sessions?: { id: string; title: string }[]
     active?: string
 }
-const props = withDefaults(defineProps<Props>(), {
+withDefaults(defineProps<Props>(), {
     sessions: () => [],
     active: '',
 })

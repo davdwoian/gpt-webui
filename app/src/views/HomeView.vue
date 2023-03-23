@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted, reactive } from 'vue'
+import { ref, onMounted } from 'vue'
 import { onBeforeRouteUpdate, useRoute } from 'vue-router'
 import Sidebar from '../components/SessionSidebar.vue'
 import Menubar from '../components/SessionMenubar.vue'
@@ -18,7 +18,7 @@ const userPreset = {
 }
 
 const encode = async (text: string): Promise<number> => {
-    return new Promise((resolve, reject) => {
+    return new Promise((resolve) => {
         axios
             .post(`${API_SERVER}/api/gpt/tokenizer`, text, {
                 headers: {
