@@ -17,13 +17,17 @@ server.use(express.urlencoded({ extended: false }))
 server.use(express.text())
 
 server.get('*', (req, res, next) => {
-    // console.log(req.url)
+    console.log(req.url)
     next()
 })
 
 server.post('*', (req, res, next) => {
-    // console.log(req.url)
+    console.log(req.url)
     next()
+})
+
+server.get('/', (req, res) => {
+    res.send(200)
 })
 
 server.post('/api/gpt/tokenizer', async (req, res) => {
@@ -41,7 +45,7 @@ server.post('/api/gpt/tokenizer', async (req, res) => {
 
 server.get('/api/gpt/create', (req, res) => {
     try {
-        let trial = 10
+        let trial = 100
         let sessionId = randomstring.generate(
             parseInt(process.env.API_CHATGPT_SESSION_ID_LENGTH)
         )
@@ -57,15 +61,34 @@ server.get('/api/gpt/create', (req, res) => {
         chatgpt.putIfAbsent(sessionId)
     } catch (err) {
         console.log(err)
-        res.send(404)
+        res.sendStatus(404)
+    }
+})
+
+server.get('/api/gpt/delete/:sessionId', (req, res) => {
+    try {
+        chatgpt.remove(req.params.sessionId)
+        res.sendStatus(200)
+    } catch (err) {
+        console.log(err)
+        res.sendStatus(404)
+    }
+})
+
+server.get('/api/gpt/clear/:sessionId', (req, res) => {
+    try {
+        chatgpt.remove(req.params.sessionId)
+        chatgpt.putIfAbsent(req.params.sessionId)
+        res.send(200)
+    } catch (err) {
+        console.log(err)
+        res.sendStatus(404)
     }
 })
 
 server.get('/api/gpt/sessions', (req, res) => {
     try {
-        res.send({
-            sessions: chatgpt.getSessions(),
-        })
+        res.send(chatgpt.getSessions())
     } catch (err) {
         console.log(err)
         res.sendStatus(404)
@@ -74,6 +97,7 @@ server.get('/api/gpt/sessions', (req, res) => {
 
 server.get('/api/gpt/metadata/:sessionId', (req, res) => {
     try {
+        chatgpt.cleanSession(req.params.sessionId)
         res.send(chatgpt.getSessionData(req.params.sessionId))
     } catch (err) {
         console.log(err)
@@ -84,7 +108,7 @@ server.get('/api/gpt/metadata/:sessionId', (req, res) => {
 server.get('/api/gpt/title/:sessionId', (req, res) => {
     try {
         const title = chatgpt.getSessionData(req.params.sessionId)?.title || ''
-        res.send({ title: title })
+        res.send(title)
     } catch (err) {
         console.log(err)
         res.sendStatus(404)
@@ -139,6 +163,7 @@ process.stdin.resume() //so the program will not close instantly
 const exitHandler = (options: any, exitCode: any) => {
     if (options.cleanup) {
         console.log('\nbackend: cleanning')
+        chatgpt.cleanup()
         db.push()
         console.log('backend: cleanup finished')
     }

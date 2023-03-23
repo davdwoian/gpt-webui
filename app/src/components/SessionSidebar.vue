@@ -2,22 +2,33 @@
 import { defineEmits } from 'vue'
 import { RouterLink } from 'vue-router'
 import ChatIcon from './icons/IconChat.vue'
+import TrashIcon from './icons/IconTrash.vue'
+import EditIcon from './icons/IconEdit.vue'
 
 export interface Props {
-    sessions?: { title: string; id: string }[]
+    sessions?: { id: string; title: string }[]
     active?: string
 }
 const props = withDefaults(defineProps<Props>(), {
     sessions: () => [],
     active: '',
 })
-const emit = defineEmits(['hide'])
+
+// (
+//     ['hide', 'create', 'clear', 'delete']
+// )
+const emit = defineEmits<{
+    (e: 'hide'): void
+    (e: 'create'): void
+    (e: 'clear'): void
+    (e: 'delete', sessionId: string): void
+}>()
 </script>
 
 <template>
     <div id="main-wrapper">
-        <div id="create-button">
-            <span>New chat</span>
+        <div id="create-button" @click="emit('create')">
+            <span>Create</span>
         </div>
 
         <div id="session-wrapper">
@@ -32,14 +43,21 @@ const emit = defineEmits(['hide'])
                         'option-active': item.id == active,
                     }"
                 >
-                    <ChatIcon class="option-image" />
+                    <ChatIcon class="option-left" />
                     <span class="option-title">{{ item.title }}</span>
+                    <div class="option-right hover-show float">
+                        <EditIcon class="option-right-child hover-highlight" />
+                        <TrashIcon
+                            class="option-right-child hover-highlight"
+                            @click="emit('delete', item.id)"
+                        />
+                    </div>
                 </div>
             </RouterLink>
         </div>
 
         <div id="bottom-wrapper">
-            <div class="option">
+            <div class="option" @click="emit('clear')">
                 <span>Clear conversations</span>
             </div>
             <div class="option">
@@ -94,16 +112,24 @@ a {
     background-color: #202123;
 }
 
-.option-image {
-    height: 100%;
-    width: 20px;
+.option-left {
     float: left;
+
+    width: 20px;
+    height: 100%;
+}
+.option-right {
+    float: right;
+
+    width: 65px;
+    height: 100%;
 }
 .option,
 .option-active {
     height: 40px;
     margin: 5px 10px;
     padding-left: 10px;
+    padding-right: 10px;
     border-radius: 8px;
 
     font-weight: 300;
@@ -127,5 +153,28 @@ a {
 .option:hover {
     transition: background-color 0.1s linear;
     background-color: #2a2b31;
+}
+.float {
+    position: relative;
+    z-index: 2;
+}
+.option-right-child {
+    float: left;
+
+    width: 20px;
+    height: 20px;
+    margin-top: 10px;
+    margin-left: 10px;
+}
+.hover-show {
+    opacity: 0;
+}
+.hover-show:hover {
+    opacity: 1;
+    transition: opacity 0.1s ease-in;
+}
+.hover-highlight:hover {
+    border: 1px solid white;
+    border-radius: 5px;
 }
 </style>

@@ -8,51 +8,21 @@
                         "content": "You are a helpful assistant. All markdown given by you are in detailed format.",
                         "role": "system",
                         "token": 16
-                    },
-                    {
-                        "content": "hi",
-                        "role": "user",
-                        "token": 1
-                    },
-                    {
-                        "content": "Hello! How can I assist you today?",
-                        "role": "assistant",
-                        "token": 9
-                    },
-                    {
-                        "content": "how can i be like you?",
-                        "role": "user",
-                        "token": 7
-                    },
-                    {
-                        "content": "As an AI language model, I am programmed to assist and provide helpful responses to users. However, if you are interested in pursuing a career in artificial intelligence or related fields, you may consider studying computer science, mathematics, and statistics. Additionally, gaining experience in programming languages such as Python and Java can be helpful. It's also important to stay up-to-date with the latest developments in AI and machine learning by reading research papers and attending conferences.",
-                        "role": "assistant",
-                        "token": 89
-                    },
-                    {
-                        "content": "generate random long text",
-                        "role": "user",
-                        "token": 4
-                    },
-                    {
-                        "content": "Sure, here's a random long text for you:\n\nThe sun was setting over the horizon, casting a warm glow over the landscape. The trees swayed gently in the breeze, their leaves rustling softly. A flock of birds flew overhead, their wings beating in unison as they headed towards their roosting spot for the night.\n\nAs the darkness crept in, the stars began to twinkle in the sky. The moon rose slowly, casting a pale light over everything below. The crickets chirped in the grass, their song filling the air with a soothing melody.\n\nIn the distance, a lone wolf howled at the moon. Its mournful cry echoed through the valley, sending shivers down the spine of anyone who heard it. But for those who were used to it, it was just another night in the wilderness.\n\nThe night wore on, and the world slept peacefully. But deep beneath the surface, there was a flurry of activity. Creatures of all shapes and sizes scurried about in their underground homes, going about their business.\n\nAs dawn approached, the first rays of sunlight began to peek over the horizon. The birds began to sing once more, welcoming the new day with their cheerful melodies. And so began another day in this beautiful world we call home.",
-                        "role": "assistant",
-                        "token": 259
                     }
                 ],
                 "model": "gpt-3.5-turbo",
                 "onReply": false,
                 "sessionId": "dev",
                 "title": "dev",
-                "usedToken": 369
+                "usedToken": 16
             },
             "test": {
                 "maxToken": 4096,
                 "messages": [
                     {
-                        "content": "You are a helpful assistant. All markdown given by you are in detailed format.",
+                        "content": "You are a helpful assistant. All markdown given by you are in detailed format. the reactive object\n```\n\nOn the other hand, `ref` is used to create a single reactive value. It takes an initial value as its argument and returns a `ref` object that contains the value. Any changes made to the `ref` object's value will be automatically reflected.\n\nExample:\n\n```\nimport { ref } from 'vue'\n\nconst count = ref(0)\n\ncount.value++ // this change will be automatically reflected in the ref object\n```\n\nIn summary, `reactive` is used for creating reactive objects while `ref` is used for creating reactive values.",
                         "role": "system",
-                        "token": 16
+                        "token": 135
                     },
                     {
                         "content": "hi",
@@ -65,41 +35,21 @@
                         "token": 9
                     },
                     {
-                        "content": "write some text\n",
+                        "content": "what is the difference between ref and reactive in vue",
                         "role": "user",
-                        "token": 4
+                        "token": 10
                     },
                     {
-                        "content": "Sure, what topic would you like me to write about?",
+                        "content": "In Vue, `ref` and `reactive` are used to create reactive objects and values. \n\n`ref` is used to create a single reactive value. It takes an initial value as its argument and returns a `ref` object that contains the value. Any changes made to the `ref` object's value will be automatically reflected.\n\nExample:\n\n```\nimport { ref } from 'vue'\n\nconst count = ref(0)\n\ncount.value++ // this change will be automatically reflected in the ref object\n```\n\nOn the other hand, `reactive` is used to create a reactive object. It takes an object as its argument and returns a reactive proxy of the object. Any changes made to the properties of the reactive object will be automatically reflected.\n\nExample:\n\n```\nimport { reactive } from 'vue'\n\nconst state = reactive({\n  count: 0,\n  message: 'Hello'\n})\n\nstate.count++ // this change will be automatically reflected in the state object\n```\n\nIn summary, `ref` is used for creating reactive values while `reactive` is used for creating reactive objects.",
                         "role": "assistant",
-                        "token": 12
-                    },
-                    {
-                        "content": "AI",
-                        "role": "user",
-                        "token": 1
-                    },
-                    {
-                        "content": "Artificial Intelligence (AI) is a rapidly growing field that involves the development of intelligent machines that can perform tasks that typically require human intelligence, such as visual perception, speech recognition, decision-making, and language translation. AI has the potential to revolutionize many industries and improve our daily lives in countless ways.\n\nOne of the most exciting applications of AI is in the field of healthcare. AI-powered systems can analyze vast amounts of medical data to help doctors diagnose diseases more accurately and develop personalized treatment plans for patients. AI can also be used to monitor patients remotely, reducing the need for hospital visits and improving patient outcomes.\n\nIn addition to healthcare, AI is being used in a variety of other industries, including finance, transportation, and manufacturing. For example, banks are using AI-powered systems to detect fraud and improve customer service, while self-driving cars are using AI to navigate roads safely and efficiently.\n\nDespite its many benefits, there are also concerns about the impact of AI on society. Some worry that AI could lead to widespread job loss as machines replace human workers in many industries. Others are concerned about the potential for AI to be used for malicious purposes or to perpetuate existing biases and inequalities.\n\nAs AI continues to evolve and become more advanced, it will be important for policymakers, researchers, and industry leaders to work together to ensure that it is developed and used in a responsible and ethical manner that benefits society as a whole.",
-                        "role": "assistant",
-                        "token": 282
-                    },
-                    {
-                        "content": "continue",
-                        "role": "user",
-                        "token": 1
-                    },
-                    {
-                        "content": "To address some of these concerns, there is a growing focus on developing \"explainable AI\" - systems that can provide clear and understandable explanations for their decisions and actions. This will be particularly important in areas like healthcare and finance, where the consequences of AI decisions can have significant real-world impacts.\n\nAnother important consideration in the development of AI is ensuring that it is designed with diversity and inclusivity in mind. This means taking steps to avoid bias in data sets and algorithms, and ensuring that AI systems are accessible to people of all backgrounds and abilities.\n\nDespite the challenges, the potential benefits of AI are enormous. From improving healthcare outcomes to enhancing transportation efficiency, AI has the potential to transform many aspects of our lives for the better. As we continue to explore this exciting field, it will be important to remain mindful of the ethical and social implications of AI, and work together to ensure that it is developed in a way that benefits everyone.",
-                        "role": "assistant",
-                        "token": 186
+                        "token": 224
                     }
                 ],
                 "model": "gpt-3.5-turbo",
                 "onReply": false,
                 "sessionId": "test",
                 "title": "test",
-                "usedToken": 496
+                "usedToken": 250
             }
         }
     }

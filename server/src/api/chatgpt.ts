@@ -43,9 +43,7 @@ export interface SessionDataOption {
     title?: string
     sessionId?: string
     model?: OpenAIChatModel
-    messages?: { role: string; content: string; token: number }[]
     systemMessage?: string
-    usedToken?: number
     maxToken?: number
     onReply?: boolean
 }
@@ -62,27 +60,32 @@ export const putIfAbsent = async (
     sessionId: string,
     options?: SessionDataOption
 ): Promise<void> => {
-    if (!has(sessionId))
+    if (!has(sessionId)) {
+        const initMessage = {
+            role: 'system',
+            content: options?.systemMessage || DEFAULT_SYS_MSG,
+            token: await calculateToken(
+                options?.model || 'gpt-3.5-turbo',
+                options?.systemMessage || DEFAULT_SYS_MSG
+            ),
+        }
+
         sessions[sessionId] = {
             title: options?.title || 'New Chat',
             sessionId: sessionId,
             model: options?.model || 'gpt-3.5-turbo',
-            messages: options?.messages || [
-                {
-                    role: 'system',
-                    content: options?.systemMessage || DEFAULT_SYS_MSG,
-                    token: await calculateToken(
-                        options?.model || 'gpt-3.5-turbo',
-                        options?.systemMessage || DEFAULT_SYS_MSG
-                    ),
-                },
-            ],
-            usedToken: options?.usedToken || 0,
+            messages: [initMessage],
+            usedToken: initMessage.token,
             maxToken:
                 options?.maxToken ||
                 OpenAIChatModelMaxToken[options?.model || 'gpt-3.5-turbo'],
             onReply: options?.onReply || false,
         }
+    }
+}
+
+export const remove = (sessionId: string) => {
+    delete sessions[sessionId]
 }
 
 interface ChatOptions {
@@ -219,7 +222,6 @@ export async function chatCompleteStream(
     const msgs = sdata.messages
     msgs.push({ role: 'assistant', content: '', token: 0 })
 
-    let cnt = 0
     // eslint-disable-next-line no-constant-condition
     while (true) {
         const { done, value } = await reader.read()
@@ -236,7 +238,6 @@ export async function chatCompleteStream(
                 const partial = parsed.choices[0].delta.content || ''
 
                 msgs[msgs.length - 1].content += partial
-                cnt++
                 onData(partial)
             } catch (error) {
                 sdata.onReply = false
@@ -266,7 +267,6 @@ export async function chatCompleteStream(
         model,
         msgs[msgs.length - 1].content
     )
-    if (cnt != msgs[msgs.length - 1].token) console.log('miss!')
     sdata.usedToken += msgs[msgs.length - 2].token + msgs[msgs.length - 1].token
     sdata.onReply = false
 
@@ -300,23 +300,28 @@ export async function calculateToken(
 
 export const cleanSession = (sessionId: string) => {
     if (!has(sessionId)) return
-    if (!sessions[sessionId].onReply) return
+    if (!sessions[sessionId].onReply) {
+        const msgs = sessions[sessionId].messages
+        if (msgs[msgs.length - 1].role == 'user') {
+            const msg = msgs.pop()
+            sessions[sessionId].usedToken -= msg!.token
+        }
+        return
+    }
 
-    const msgs = sessions[sessionId].messages
-    do {
-        const msg = msgs.pop()
-        sessions[sessionId].usedToken -= msg!.token
-    } while (
-        msgs[msgs.length - 1].role != 'system' ||
-        msgs[msgs.length - 1].role != 'assistant'
-    )
+    if (sessions[sessionId].messages.length > 1) {
+        const msgs = sessions[sessionId].messages
+        do {
+            const msg = msgs.pop()
+            sessions[sessionId].usedToken -= msg!.token
+        } while (msgs.length > 1 && msgs[msgs.length - 1].role != 'assistant')
+    }
     sessions[sessionId].onReply = false
 }
+
 export const cleanup = () => {
     if (!sessions) return
-    for (const sessionId in Object.keys(sessions)) {
-        cleanSession(sessionId)
-    }
+    Object.keys(sessions).forEach((sessionId) => cleanSession(sessionId))
 }
 ;(async () => {
     await db.pull()

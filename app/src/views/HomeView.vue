@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted, resolveComponent, Static } from 'vue'
+import { ref, onMounted, reactive } from 'vue'
 import { onBeforeRouteUpdate, useRoute } from 'vue-router'
 import Sidebar from '../components/SessionSidebar.vue'
 import Menubar from '../components/SessionMenubar.vue'
@@ -17,20 +17,6 @@ const userPreset = {
     icon: '/user.jpeg',
 }
 
-const route = useRoute()
-
-// status
-const loading = ref(false)
-const freeze = ref(false)
-const useSidebar = ref(true)
-
-const sessions = ref<{ title: string; id: string }[]>([])
-const title = ref('')
-const messages = ref<{ role: string; content: string; token: number }[]>([])
-const maxToken = ref(0)
-
-const promptCount = ref(0)
-
 const encode = async (text: string): Promise<number> => {
     return new Promise((resolve, reject) => {
         axios
@@ -40,17 +26,27 @@ const encode = async (text: string): Promise<number> => {
                 },
             })
             .then((response) => {
-                console.log(response.data)
                 resolve(parseInt(response.data))
             })
     })
-    // const response = await axios.post(
-    //     `${API_SERVER}/api/gpt/tokenizer/${text}`,
-    //     {
-    //         responseType: '',
-    //     }
-    // )
 }
+
+const route = useRoute()
+
+// status
+const loading = ref(false)
+const freeze = ref(false)
+const useSidebar = ref(true)
+
+// element
+const anchor = ref<HTMLDivElement>()
+
+const sessions = ref<{ [sessionId: string]: { title: string } }>({})
+const title = ref('')
+const messages = ref<{ role: string; content: string; token: number }[]>([])
+const maxToken = ref(0)
+
+const promptCount = ref(0)
 
 // computed
 const usedToken = () => {
@@ -60,22 +56,84 @@ const usedToken = () => {
     })
     return usedToken
 }
+const sessionsArray = () => {
+    return (
+        Object.keys(sessions.value).map((sessionId) => {
+            return { id: sessionId, title: sessions.value[sessionId].title }
+        }) || []
+    )
+}
+
+const scrollToBottom = () => {
+    anchor.value?.scrollIntoView({
+        behavior: 'smooth',
+    })
+}
+
+// Fetch From Backend
+const connect = async (ms: number) => {
+    while ((await axios.get(API_SERVER)).status != 200) {
+        await new Promise((resolve) => setTimeout(resolve, ms))
+    }
+}
+const fetchTitle = async (sessionId: string) => {
+    try {
+        const response = await axios.get(
+            `${API_SERVER}/api/gpt/title/${sessionId}`
+        )
+        const data = response.data
+
+        sessions.value[sessionId] = { title: data }
+    } catch {
+        //
+    }
+}
+
+const fetchData = async (sessionId: string) => {
+    try {
+        const response = await axios.get(
+            `${API_SERVER}/api/gpt/metadata/${sessionId}`,
+            { responseType: 'json' }
+        )
+        const data = response.data as {
+            title: string
+            sessionId: string
+            messages: { role: string; content: string; token: number }[]
+            usedToken: number
+            maxToken: number
+            onReply: boolean
+        }
+
+        title.value = data.title
+        messages.value = data.messages.slice(1)
+        maxToken.value = data.maxToken
+    } catch {
+        messages.value = []
+    }
+}
+
+const fetchSessions = async () => {
+    const response = await axios.get(`${API_SERVER}/api/gpt/sessions`)
+    const data = response.data as string[]
+
+    data.forEach(async (sessionId: string) => await fetchTitle(sessionId))
+    await fetchData(route.params.sessionId as string)
+}
 
 // eventHandler
 let onInputTimeout: number
 const onInput = (content: string) => {
     clearTimeout(onInputTimeout)
-    loading.value = true
     onInputTimeout = setTimeout(async () => {
         promptCount.value = await encode(content)
-        loading.value = false
-    }, 500)
+    }, 300)
 }
 
 const onChat = async (content: string) => {
     if (loading.value || freeze.value) return
     loading.value = true
     freeze.value = true
+    scrollToBottom()
 
     messages.value.push({
         role: 'user',
@@ -104,71 +162,47 @@ const onChat = async (content: string) => {
         if (done) break
         message.content += decoder.decode(value)
         message.token += 1
+        scrollToBottom()
     }
 
     loading.value = false
     freeze.value = false
 }
 
-const fetchSessions = async () => {
-    const response = await axios.get(`${API_SERVER}/api/gpt/sessions`, {
-        responseType: 'json',
-    })
-    const parsed = response.data as { sessions: string[] }
-    const meta = await Promise.all(
-        parsed.sessions.map(async (sessionId) => {
-            try {
-                const response = await axios.get(
-                    `${API_SERVER}/api/gpt/title/${sessionId}`,
-                    { responseType: 'json' }
-                )
-                const data = response.data as { title: string }
-                return { title: data.title, sessionId: sessionId }
-            } catch {
-                return undefined
-            }
-        })
-    )
-    sessions.value =
-        meta
-            .filter((x) => x != undefined)
-            .map((x) => {
-                return { title: x!.title, id: x!.sessionId }
-            }) || []
+const onCreateChatSession = async () => {
+    const data = (await axios.get(`${API_SERVER}/api/gpt/create`)).data as {
+        sessionId: string
+        available: boolean
+    }
+
+    if (!data.available) return
+    sessions.value[data.sessionId] = { title: 'New Chat' }
 }
 
-const fetchData = async (sessionId: string) => {
-    try {
-        const response = await axios.get(
-            `${API_SERVER}/api/gpt/metadata/${sessionId}`,
-            { responseType: 'json' }
-        )
-        const data = response.data as {
-            title: string
-            sessionId: string
-            messages: { role: string; content: string; token: number }[]
-            usedToken: number
-            maxToken: number
-            onReply: boolean
-        }
+const onDeleteChatSession = async (sessionId: string) => {
+    axios.get(`${API_SERVER}/api/gpt/delete/${sessionId}`).then(() => {
+        delete sessions.value[sessionId]
+        if (sessionId == route.params.sessionId) messages.value = []
+    })
+}
 
-        title.value = data.title
-        messages.value = data.messages.slice(1)
-        maxToken.value = data.maxToken
-    } catch {
-        messages.value = []
-    }
+const onClearChatSession = async (sessionId: string) => {
+    axios.get(`${API_SERVER}/api/gpt/clear/${sessionId}`).then(async () => {
+        if (sessionId == route.params.sessionId) {
+            messages.value = []
+        }
+    })
 }
 
 // hook
 onMounted(async () => {
+    await connect(500)
     await fetchSessions()
-    await fetchData(route.params.sessionId as string)
 })
 
 onBeforeRouteUpdate(async (to, from) => {
     if (to.params.sessionId !== from.params.sessionId) {
-        await fetchSessions()
+        await fetchTitle(to.params.sessionId as string)
         await fetchData(to.params.sessionId as string)
     }
 })
@@ -183,8 +217,11 @@ onBeforeRouteUpdate(async (to, from) => {
             }"
         >
             <Sidebar
-                :sessions="sessions"
+                :sessions="sessionsArray()"
                 :active="route.params.sessionId + ''"
+                @create="onCreateChatSession"
+                @clear="onClearChatSession(route.params.sessionId as string)"
+                @delete="onDeleteChatSession"
             />
         </div>
 
@@ -198,9 +235,11 @@ onBeforeRouteUpdate(async (to, from) => {
         </div>
 
         <div
+            ref="content-wrapper"
             :class="{
                 content: useSidebar,
                 'content-full': !useSidebar,
+                noscroll: freeze,
             }"
         >
             <div class="menubar-padding" />
@@ -219,6 +258,7 @@ onBeforeRouteUpdate(async (to, from) => {
                 :decoration="`${item.token}`"
             />
             <Prompt :show-info="false" />
+            <div ref="anchor"></div>
 
             <Textarea
                 class="bottom-float"
@@ -276,11 +316,15 @@ onBeforeRouteUpdate(async (to, from) => {
     float: right;
     width: calc(100% - 250px);
     height: 100vh;
+
+    overflow-y: scroll;
 }
 .content-full {
     float: right;
     width: 100%;
     transition: width 0.15s ease-in;
+
+    overflow-y: scroll;
 }
 
 .bottom-float {
@@ -289,6 +333,10 @@ onBeforeRouteUpdate(async (to, from) => {
     width: 100%;
     height: auto;
     bottom: 0px;
+}
+
+.noscroll {
+    overflow-y: hidden;
 }
 
 @media (max-width: 1024px) {
